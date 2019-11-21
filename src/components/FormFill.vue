@@ -78,6 +78,7 @@
 import Vue from "vue";
 import "vant/lib/index.css";
 import axios from "axios";
+import qs from "querystring";
 import {
   CellGroup,
   Field,
@@ -162,18 +163,24 @@ export default {
       this.fileList.map((item, index, arr) => {
         var imgObject = new Image();
         imgObject.onload = () => {
-          var newImg = getImagePortion(imgObject, this.phoneType.onePlus7);
+          var newImg = getImagePortion(imgObject, this.phoneType.iphone8);
           //place image in appropriate div，这一步可以不用
           document.getElementById("images").innerHTML =
             "<img alt='' src='" + newImg + "' />";
           // console.log("newImg: " + newImg);
           imageList.push(newImg);
           if (imageList.length === arr.length) {
+            let newImgList = imageList.map(item => item.split(",")[1]);
+            // sad似乎只能一张张图片上传，上传两张会报错"request entity too large"
+            let fd = {image: newImgList };
+            let config = {
+              headers: {
+                "Content-Type": "application/json;charset=utf-8"
+                // "Content-Type": "application/x-www-form-urlencoded"
+              }
+            };
             axios
-              .post(
-                "https://aip.baidubce.com/rest/2.0/ocr/v1/accurate_basic?access_token=24.683b4642a86b3901a2ce9bbbed7a15a8.2592000.1576760951.282335-17808912",
-                {image:imageList[0].split(',')[1]}
-              )
+              .post("http://localhost:3000/images", qs.parse(qs.stringify(fd)), config)
               .then(res => console.log(res))
               .catch(err => console.log(err));
           }
@@ -181,24 +188,6 @@ export default {
         imgObject.src = item.content;
       });
       console.log(imageList);
-      // 拼图参数
-      // var len = imageList.length;
-      // var puzzleImage = document.createElement("canvas");
-      // var ctx = puzzleImage.getContext("2d");
-      // puzzleImage.width = imageList[0].width;
-      // puzzleImage.height = imageList[0].height * (len + 1);
-      // // 开始拼图
-      // for (let i = 0; i < len; i++) {
-      //   var imgObject = new Image();
-      //   imgObject.onload = () => {
-      //     ctx.drawImage(imgObject, 0, i * imgObject.height);
-      //   };
-      //   imgObject.src = imageList[i];
-      // }
-      // //place image in appropriate div
-      // document.getElementById("images").innerHTML =
-      //   "<img alt='' src='" + puzzleImage.toDataURL() + "' />";
-      // console.log("puzzleImage: " + puzzleImage.toDataURL());
 
       // 将图片切成需要的大小
       function getImagePortion(imgObj, scale) {
