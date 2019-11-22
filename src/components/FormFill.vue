@@ -61,6 +61,27 @@
       />
     </van-popup>
 
+    <!-- 手机型号 -->
+    <van-field
+      v-model="phoneType"
+      readonly
+      required
+      clickable
+      clearable
+      label="截图手机"
+      placeholder="请选择手机型号"
+      @click="showPhoneTypeList = true"
+    />
+    <van-popup v-model="showPhoneTypeList" position="bottom" :style="{ height: '30%' }">
+      <van-picker
+        show-toolbar
+        :columns="Object.keys(phoneTypeList)"
+        @cancel="showPhoneTypeList = false"
+        @confirm="onPhoneTypeConfirm"
+        title="请选择手机型号"
+      />
+    </van-popup>
+
     <!-- 图片上传 -->
     <van-uploader
       v-model="fileList"
@@ -69,7 +90,7 @@
       preview-size="40px"
       :after-read="afterRead"
     />
-    <van-button type="primary" @click="completeUpload">点击上传图片</van-button>
+    <van-button type="primary" @click="completeUpload" block>点击上传图片</van-button>
     <img id="images" src alt />
   </van-cell-group>
 </template>
@@ -105,6 +126,7 @@ export default {
       showInstance: false,
       showTimePicker: false,
       showTimePicker1: false,
+      showPhoneTypeList: false,
       instanceArr: ["切西瓜", "切冬瓜", "切南瓜", "切橙子"],
       statisticalTime: this.formatter(new Date()),
       statisticalPeriod: `${this.formatterMinus5(new Date())}至${this.formatter(
@@ -112,17 +134,18 @@ export default {
       )}`,
       minDate: new Date(2019, 9, 24),
       fileList: [],
-      phoneType: {
-        onePlus7: {
-          scaleX: 0.67,
-          scaleY: 0.15,
-          scaleWidth: 0.33,
-          scaleHeight: 0.78
-        },
+      phoneType: "",
+      phoneTypeList: {
         iphone8: {
           scaleX: 0.6,
           scaleY: 0.14,
           scaleWidth: 0.4,
+          scaleHeight: 0.78
+        },
+        onePlus7Pro: {
+          scaleX: 0.67,
+          scaleY: 0.15,
+          scaleWidth: 0.33,
           scaleHeight: 0.78
         }
       }
@@ -142,6 +165,10 @@ export default {
         date
       )}`;
       this.showTimePicker1 = false;
+    },
+    onPhoneTypeConfirm(value) {
+      this.phoneType = value;
+      this.showPhoneTypeList = false;
     },
     formatter(date) {
       return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
@@ -163,24 +190,34 @@ export default {
       this.fileList.map((item, index, arr) => {
         var imgObject = new Image();
         imgObject.onload = () => {
-          var newImg = getImagePortion(imgObject, this.phoneType.iphone8);
+          var newImg = getImagePortion(imgObject, this.phoneTypeList[this.phoneType]);
           //place image in appropriate div，这一步可以不用
-          document.getElementById("images").innerHTML =
-            "<img alt='' src='" + newImg + "' />";
-          // console.log("newImg: " + newImg);
+          // document.getElementById("images").innerHTML =
+          //   "<img alt='' src='" + newImg + "' />";
           imageList.push(newImg);
+
+          // 如果图片全部切完，就发请求8!
           if (imageList.length === arr.length) {
             let newImgList = imageList.map(item => item.split(",")[1]);
             // sad似乎只能一张张图片上传，上传两张会报错"request entity too large"
-            let fd = {image: newImgList };
+            let postData = {
+              image: newImgList,
+              instanceName: this.instanceName,
+              statisticalTime: this.statisticalTime,
+              statisticalPeriod: this.statisticalPeriod,
+              phoneType: this.phoneType
+            };
             let config = {
               headers: {
                 "Content-Type": "application/json;charset=utf-8"
-                // "Content-Type": "application/x-www-form-urlencoded"
               }
             };
             axios
-              .post("http://localhost:3000/images", qs.parse(qs.stringify(fd)), config)
+              .post(
+                "http://192.168.1.4:3000/images",
+                qs.parse(qs.stringify(postData)),
+                config
+              )
               .then(res => console.log(res))
               .catch(err => console.log(err));
           }
