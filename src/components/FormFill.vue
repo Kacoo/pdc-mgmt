@@ -122,19 +122,19 @@ export default {
   name: "FormFill",
   data() {
     return {
-      instanceName: "",
+      instanceName: "切西瓜二",
       showInstance: false,
       showTimePicker: false,
       showTimePicker1: false,
       showPhoneTypeList: false,
-      instanceArr: ["切西瓜", "切冬瓜", "切南瓜", "切橙子"],
+      instanceArr: ["切西瓜二", "切冬瓜", "切南瓜", "切橙子"],
       statisticalTime: this.formatter(new Date()),
       statisticalPeriod: `${this.formatterMinus5(new Date())}至${this.formatter(
         new Date()
       )}`,
       minDate: new Date(2019, 9, 24),
       fileList: [],
-      phoneType: "",
+      phoneType: "onePlus7Pro",
       phoneTypeList: {
         iphone8: {
           scaleX: 0.6,
@@ -146,7 +146,7 @@ export default {
           scaleX: 0.67,
           scaleY: 0.15,
           scaleWidth: 0.33,
-          scaleHeight: 0.78
+          scaleHeight: 0.76
         }
       }
     };
@@ -192,8 +192,8 @@ export default {
         imgObject.onload = () => {
           var newImg = getImagePortion(imgObject, this.phoneTypeList[this.phoneType]);
           //place image in appropriate div，这一步可以不用
-          // document.getElementById("images").innerHTML =
-          //   "<img alt='' src='" + newImg + "' />";
+          document.getElementById("images").innerHTML =
+            "<img alt='' src='" + newImg + "' />";
           imageList.push(newImg);
 
           // 如果图片全部切完，就发请求8!
