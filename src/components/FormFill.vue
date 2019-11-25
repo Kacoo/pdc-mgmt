@@ -86,7 +86,7 @@
     <van-uploader
       v-model="fileList"
       multiple
-      :max-count="15"
+      :max-count="10"
       preview-size="40px"
       :after-read="afterRead"
     />
@@ -146,7 +146,7 @@ export default {
           scaleX: 0.67,
           scaleY: 0.15,
           scaleWidth: 0.33,
-          scaleHeight: 0.76
+          scaleHeight: 0.78
         }
       }
     };
@@ -192,8 +192,8 @@ export default {
         imgObject.onload = () => {
           var newImg = getImagePortion(imgObject, this.phoneTypeList[this.phoneType]);
           //place image in appropriate div，这一步可以不用
-          document.getElementById("images").innerHTML =
-            "<img alt='' src='" + newImg + "' />";
+          // document.getElementById("images").innerHTML =
+          //   "<img alt='' src='" + newImg + "' />";
           imageList.push(newImg);
 
           // 如果图片全部切完，就发请求8!
