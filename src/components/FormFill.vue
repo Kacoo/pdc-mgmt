@@ -109,6 +109,8 @@ import {
   Button,
   Uploader
 } from "vant";
+// 自己写的模块
+import instance from "../common/common";
 
 Vue.use(CellGroup)
   .use(Field)
@@ -122,21 +124,21 @@ export default {
   name: "FormFill",
   data() {
     return {
-      instanceName: "切西瓜二",
+      instanceName: instance[0].name,
       showInstance: false,
       showTimePicker: false,
       showTimePicker1: false,
       showPhoneTypeList: false,
-      instanceArr: ["切西瓜二", "切冬瓜", "切南瓜", "切橙子"],
+      instanceArr: instance.map(item => item.name),
       statisticalTime: this.formatter(new Date()),
       statisticalPeriod: `${this.formatterMinus5(new Date())}至${this.formatter(
         new Date()
       )}`,
       minDate: new Date(2019, 9, 24),
       fileList: [],
-      phoneType: "onePlus7Pro",
+      phoneType: "iphone8_6sp",
       phoneTypeList: {
-        iphone8: {
+        iphone8_6sp: {
           scaleX: 0.6,
           scaleY: 0.14,
           scaleWidth: 0.4,
@@ -190,10 +192,13 @@ export default {
       this.fileList.map((item, index, arr) => {
         var imgObject = new Image();
         imgObject.onload = () => {
-          var newImg = getImagePortion(imgObject, this.phoneTypeList[this.phoneType]);
+          var newImg = getImagePortion(
+            imgObject,
+            this.phoneTypeList[this.phoneType]
+          );
           //place image in appropriate div，这一步可以不用
-          // document.getElementById("images").innerHTML =
-          //   "<img alt='' src='" + newImg + "' />";
+          document.getElementById("images").innerHTML =
+            "<img alt='' src='" + newImg + "' />";
           imageList.push(newImg);
 
           // 如果图片全部切完，就发请求8!
@@ -202,6 +207,9 @@ export default {
             // sad似乎只能一张张图片上传，上传两张会报错"request entity too large"
             let postData = {
               image: newImgList,
+              instanceId: instance.filter(
+                item => item.name === this.instanceName
+              )[0].id,
               instanceName: this.instanceName,
               statisticalTime: this.statisticalTime,
               statisticalPeriod: this.statisticalPeriod,
