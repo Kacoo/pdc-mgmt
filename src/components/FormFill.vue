@@ -1,5 +1,6 @@
 <template>
   <van-cell-group>
+    <van-overlay :show="over" />
     <!-- 副本名称 -->
     <van-field
       v-model="instanceName"
@@ -107,10 +108,13 @@ import {
   Popup,
   Picker,
   Button,
-  Uploader
+  Uploader,
+  Overlay,
+  Toast
 } from "vant";
 // 自己写的模块
 import instance from "../common/common";
+import myConfig from "../common/config";
 
 Vue.use(CellGroup)
   .use(Field)
@@ -118,13 +122,16 @@ Vue.use(CellGroup)
   .use(Popup)
   .use(Picker)
   .use(Button)
-  .use(Uploader);
+  .use(Uploader)
+  .use(Overlay)
+  .use(Toast);
 
 export default {
   name: "FormFill",
   data() {
     return {
       instanceName: instance[0].name,
+      over: false,
       showInstance: false,
       showTimePicker: false,
       showTimePicker1: false,
@@ -187,6 +194,7 @@ export default {
       console.log(this.fileList);
     },
     completeUpload() {
+      this.over = true;
       // 图片上传完毕，点击按钮，开始切图
       let imageList = []; // 该数组用于存放最终切完的图
       this.fileList.map((item, index, arr) => {
@@ -197,8 +205,9 @@ export default {
             this.phoneTypeList[this.phoneType]
           );
           //place image in appropriate div，这一步可以不用
-          document.getElementById("images").innerHTML =
-            "<img alt='' src='" + newImg + "' />";
+          // document.getElementById("images").innerHTML =
+          //   "<img alt='' src='" + newImg + "' />";
+
           imageList.push(newImg);
 
           // 如果图片全部切完，就发请求8!
@@ -222,12 +231,26 @@ export default {
             };
             axios
               .post(
-                "http://192.168.1.4:3000/images",
+                `http://${myConfig.host}:${myConfig.port}/images`,
                 qs.parse(qs.stringify(postData)),
                 config
               )
-              .then(res => console.log(res))
-              .catch(err => console.log(err));
+              .then(res => {
+                this.over = false;
+                console.log(res);
+                if (res.data.status === "true") {
+                  Toast.success("提交成功");
+                } else if (res.data.msg) {
+                  Toast.fail(res.data.msg);
+                } else {
+                  Toast.fail("不知道哪里错了，重新提交试试");
+                }
+              })
+              .catch(err => {
+                this.over = false;
+                Toast.fail("检查一下服务器是不是挂啦");
+                console.log(err);
+              });
           }
         };
         imgObject.src = item.content;
