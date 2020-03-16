@@ -90,9 +90,15 @@
       :max-count="10"
       preview-size="40px"
       :after-read="afterRead"
+      @delete="deleteFile"
     />
     <van-button type="primary" @click="completeUpload" block>点击上传图片</van-button>
-    <img id="images" src alt />
+    <!-- <img id="images" src alt /> -->
+    <br/>
+    <div>处理后：</div>
+    <div>
+      <img v-for="(item, index) in newImageList" v-bind:key="index" v-bind:src="item" class="new-image"/>
+    </div>
   </van-cell-group>
 </template>
 
@@ -130,6 +136,7 @@ export default {
   name: "FormFill",
   data() {
     return {
+      newImageList:[],
       instanceName: instance[0].name,
       over: false,
       showInstance: false,
@@ -156,7 +163,19 @@ export default {
           scaleY: 0.15,
           scaleWidth: 0.33,
           scaleHeight: 0.78
-        }
+        },
+        blackShark2: {
+          scaleX: 0.67,
+          scaleY: 0.15,
+          scaleWidth: 0.33,
+          scaleHeight: 0.78
+        },
+        huaWeiMate30: {
+          scaleX: 0.64,
+          scaleY: 0.15,
+          scaleWidth: 0.33,
+          scaleHeight: 0.78
+        },
       }
     };
   },
@@ -178,6 +197,8 @@ export default {
     onPhoneTypeConfirm(value) {
       this.phoneType = value;
       this.showPhoneTypeList = false;
+      this.fileList = [];
+      this.newImageList = [];
     },
     formatter(date) {
       return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
@@ -190,75 +211,77 @@ export default {
       return `${dateMinus5.getFullYear()}-${dateMinus5.getMonth() +
         1}-${dateMinus5.getDate() - 5}`;
     },
-    afterRead() {
-      console.log(this.fileList);
-    },
-    completeUpload() {
-      this.over = true;
-      // 图片上传完毕，点击按钮，开始切图
-      let imageList = []; // 该数组用于存放最终切完的图
-      this.fileList.map((item, index, arr) => {
-        var imgObject = new Image();
+    afterRead(file) {
+      if(Array.isArray(file)) {
+        for(let i = 0; i < file.length; i++) {
+          let imgObject = new Image();
+          imgObject.onload = () => {
+            let newImg = this.getImagePortion(
+              imgObject,
+              this.phoneTypeList[this.phoneType]
+            );
+            this.newImageList.push(newImg);
+          };
+          imgObject.src = file[i].content;
+        }
+      } else {
+        let imgObject = new Image();
         imgObject.onload = () => {
-          var newImg = getImagePortion(
+          let newImg = this.getImagePortion(
             imgObject,
             this.phoneTypeList[this.phoneType]
           );
-          //place image in appropriate div，这一步可以不用
-          // document.getElementById("images").innerHTML =
-          //   "<img alt='' src='" + newImg + "' />";
-
-          imageList.push(newImg);
-
-          // 如果图片全部切完，就发请求8!
-          if (imageList.length === arr.length) {
-            let newImgList = imageList.map(item => item.split(",")[1]);
-            // sad似乎只能一张张图片上传，上传两张会报错"request entity too large"
-            let postData = {
-              image: newImgList,
-              instanceId: instance.filter(
-                item => item.name === this.instanceName
-              )[0].id,
-              instanceName: this.instanceName,
-              statisticalTime: this.statisticalTime,
-              statisticalPeriod: this.statisticalPeriod,
-              phoneType: this.phoneType
-            };
-            let config = {
-              headers: {
-                "Content-Type": "application/json;charset=utf-8"
-              }
-            };
-            axios
-              .post(
-                `http://${myConfig.host}:${myConfig.port}/images`,
-                qs.parse(qs.stringify(postData)),
-                config
-              )
-              .then(res => {
-                this.over = false;
-                console.log(res);
-                if (res.data.status === "true") {
-                  Toast.success("提交成功");
-                } else if (res.data.msg) {
-                  Toast.fail(res.data.msg);
-                } else {
-                  Toast.fail("不知道哪里错了，重新提交试试");
-                }
-              })
-              .catch(err => {
-                this.over = false;
-                Toast.fail("检查一下服务器是不是挂啦");
-                console.log(err);
-              });
-          }
+          this.newImageList.push(newImg);
         };
-        imgObject.src = item.content;
-      });
-      console.log(imageList);
-
-      // 将图片切成需要的大小
-      function getImagePortion(imgObj, scale) {
+        imgObject.src = file.content;
+      }
+    },
+    deleteFile(file, msg) {
+      this.newImageList.splice(msg.index, 1)
+    },
+    completeUpload() {
+      this.over = true;
+      let newImgList = this.newImageList.map(item => item.split(",")[1]);
+      // sad似乎只能一张张图片上传，上传两张会报错"request entity too large"
+      let postData = {
+        image: newImgList,
+        instanceId: instance.filter(
+          item => item.name === this.instanceName
+        )[0].id,
+        instanceName: this.instanceName,
+        statisticalTime: this.statisticalTime,
+        statisticalPeriod: this.statisticalPeriod,
+        phoneType: this.phoneType
+      };
+      let config = {
+        headers: {
+          "Content-Type": "application/json;charset=utf-8"
+        }
+      };
+      axios
+        .post(
+          `http://${myConfig.host}:${myConfig.port}/images`,
+          qs.parse(qs.stringify(postData)),
+          config
+        )
+        .then(res => {
+          this.over = false;
+          console.log(res);
+          if (res.data.status === "true") {
+            Toast.success("提交成功");
+          } else if (res.data.msg) {
+            Toast.fail(res.data.msg);
+          } else {
+            Toast.fail("不知道哪里错了，重新提交试试");
+          }
+        })
+        .catch(err => {
+          this.over = false;
+          Toast.fail("检查一下服务器是不是挂啦");
+          console.log(err);
+        });
+    },
+    getImagePortion(imgObj, scale) { // 将图片切成需要的大小
         // 定义截图开始坐标，以及截图长度
         var startX = imgObj.width * scale.scaleX;
         var startY = imgObj.height * scale.scaleY;
@@ -291,10 +314,12 @@ export default {
         // 将结果转为base64编码返回
         return tnCanvas.toDataURL();
       }
-    }
   }
 };
 </script>
 
 <style>
+.new-image {
+  max-width: 100%;
+}
 </style>
