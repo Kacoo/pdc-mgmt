@@ -93,11 +93,17 @@
       @delete="deleteFile"
     />
     <van-button type="primary" @click="completeUpload" block>点击上传图片</van-button>
-    <!-- <img id="images" src alt /> -->
-    <br/>
+    <img id="images" src alt />
+    <!-- 预览一下切完的兔兔 -->
+    <br />
     <div>处理后：</div>
     <div>
-      <img v-for="(item, index) in newImageList" v-bind:key="index" v-bind:src="item" class="new-image"/>
+      <img
+        v-for="(item, index) in newImageList"
+        v-bind:key="index"
+        v-bind:src="item"
+        class="new-image"
+      />
     </div>
   </van-cell-group>
 </template>
@@ -136,8 +142,8 @@ export default {
   name: "FormFill",
   data() {
     return {
-      newImageList:[],
-      instanceName: instance[0].name,
+      newImageList: [],
+      instanceName: instance[2].name,
       over: false,
       showInstance: false,
       showTimePicker: false,
@@ -148,11 +154,11 @@ export default {
       statisticalPeriod: `${this.formatterMinus5(new Date())}至${this.formatter(
         new Date()
       )}`,
-      minDate: new Date(2019, 9, 24),
+      minDate: new Date(2020, 2, 15),
       fileList: [],
-      phoneType: "iphone8_6sp",
+      phoneType: "iphone8_6sp_7p",
       phoneTypeList: {
-        iphone8_6sp: {
+        iphone8_6sp_7p: {
           scaleX: 0.6,
           scaleY: 0.14,
           scaleWidth: 0.4,
@@ -176,6 +182,12 @@ export default {
           scaleWidth: 0.33,
           scaleHeight: 0.78
         },
+        Meizu16th: {
+          scaleX: 0.645,
+          scaleY: 0.15,
+          scaleWidth: 0.32,
+          scaleHeight: 0.77
+        }
       }
     };
   },
@@ -212,8 +224,8 @@ export default {
         1}-${dateMinus5.getDate() - 5}`;
     },
     afterRead(file) {
-      if(Array.isArray(file)) {
-        for(let i = 0; i < file.length; i++) {
+      if (Array.isArray(file)) {
+        for (let i = 0; i < file.length; i++) {
           let imgObject = new Image();
           imgObject.onload = () => {
             let newImg = this.getImagePortion(
@@ -237,17 +249,17 @@ export default {
       }
     },
     deleteFile(file, msg) {
-      this.newImageList.splice(msg.index, 1)
+      this.newImageList.splice(msg.index, 1);
     },
     completeUpload() {
       this.over = true;
+      // 去掉base64编码的前缀
       let newImgList = this.newImageList.map(item => item.split(",")[1]);
       // sad似乎只能一张张图片上传，上传两张会报错"request entity too large"
       let postData = {
         image: newImgList,
-        instanceId: instance.filter(
-          item => item.name === this.instanceName
-        )[0].id,
+        instanceId: instance.filter(item => item.name === this.instanceName)[0]
+          .id,
         instanceName: this.instanceName,
         statisticalTime: this.statisticalTime,
         statisticalPeriod: this.statisticalPeriod,
@@ -281,39 +293,40 @@ export default {
           console.log(err);
         });
     },
-    getImagePortion(imgObj, scale) { // 将图片切成需要的大小
-        // 定义截图开始坐标，以及截图长度
-        var startX = imgObj.width * scale.scaleX;
-        var startY = imgObj.height * scale.scaleY;
-        var newWidth = imgObj.width * scale.scaleWidth;
-        var newHeight = imgObj.height * scale.scaleHeight;
+    getImagePortion(imgObj, scale) {
+      // 将图片切成需要的大小
+      // 定义截图开始坐标，以及截图长度
+      var startX = imgObj.width * scale.scaleX;
+      var startY = imgObj.height * scale.scaleY;
+      var newWidth = imgObj.width * scale.scaleWidth;
+      var newHeight = imgObj.height * scale.scaleHeight;
 
-        // 搞个画布
-        var tnCanvas = document.createElement("canvas");
-        var tnCanvasContext = tnCanvas.getContext("2d");
-        tnCanvas.width = newWidth;
-        tnCanvas.height = newHeight;
-        /* use the sourceCanvas to duplicate the entire image. This step was crucial for iOS4 and under devices. Follow the link at the end of this post to see what happens when you don’t do this */
-        var bufferCanvas = document.createElement("canvas");
-        var bufferContext = bufferCanvas.getContext("2d");
-        bufferCanvas.width = imgObj.width;
-        bufferCanvas.height = imgObj.height;
-        bufferContext.drawImage(imgObj, 0, 0);
-        /* now we use the drawImage method to take the pixels from our bufferCanvas and draw them into our thumbnail canvas */
-        tnCanvasContext.drawImage(
-          bufferCanvas,
-          startX,
-          startY,
-          newWidth,
-          newHeight,
-          0,
-          0,
-          newWidth,
-          newHeight
-        );
-        // 将结果转为base64编码返回
-        return tnCanvas.toDataURL();
-      }
+      // 搞个画布
+      var tnCanvas = document.createElement("canvas");
+      var tnCanvasContext = tnCanvas.getContext("2d");
+      tnCanvas.width = newWidth;
+      tnCanvas.height = newHeight;
+      /* use the sourceCanvas to duplicate the entire image. This step was crucial for iOS4 and under devices. Follow the link at the end of this post to see what happens when you don’t do this */
+      var bufferCanvas = document.createElement("canvas");
+      var bufferContext = bufferCanvas.getContext("2d");
+      bufferCanvas.width = imgObj.width;
+      bufferCanvas.height = imgObj.height;
+      bufferContext.drawImage(imgObj, 0, 0);
+      /* now we use the drawImage method to take the pixels from our bufferCanvas and draw them into our thumbnail canvas */
+      tnCanvasContext.drawImage(
+        bufferCanvas,
+        startX,
+        startY,
+        newWidth,
+        newHeight,
+        0,
+        0,
+        newWidth,
+        newHeight
+      );
+      // 将结果转为base64编码返回
+      return tnCanvas.toDataURL();
+    }
   }
 };
 </script>

@@ -6,7 +6,8 @@ const instance = [
   { id: 5, name: '收集金币', },
   { id: 6, name: '消灭河豚', },
   { id: 7, name: '摧毁飞镖', },
-  { id: 8, name: '无尽狂奔', },
+  // { id: 8, name: '无尽狂奔', },
+  { id: 9, name: '逃离森林', },
 ]
 
 export default instance;

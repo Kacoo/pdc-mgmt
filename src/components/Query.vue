@@ -53,7 +53,7 @@
         </tr>
         <tr v-for="(item, index) in instanceDetail" v-bind:key="index">
           <td>{{item['player_name'] + '\t'}}</td>
-          <td>{{item['score'] || '/' + '\n'}}</td>
+          <td>{{item['score'] || '-' + '\n'}}</td>
         </tr>
       </table>
     </div>
@@ -101,7 +101,7 @@ export default {
       statisticalPeriod: `${this.formatterMinus5(new Date())}至${this.formatter(
         new Date()
       )}`,
-      minDate: new Date(2019, 9, 24),
+      minDate: new Date(2020, 2, 15),
       instanceDetail: [],
       over: false
     };
